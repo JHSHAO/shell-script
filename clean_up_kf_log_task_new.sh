@@ -1,8 +1,4 @@
 #!/bin/bash
-if [ -e clean_log.log ];then
-  rm clean_log.log
-fi
-
 clean_log_local="/home/babel/workspace/yunwei/clean_up_kf_log.sh"
 clean_log_remote="/home/babel/clean_up_kf_log.sh"
 del_filedump_path="/home/babel/Filedump/file_dump_outfile_x86_byname_20160607/log/"
@@ -10,7 +6,7 @@ del_inputhbase_path="/home/babel/InputHbase/RealtimeList_new_batch_20160607/log/
 for i in {1..7};do
   scp $clean_log_local kf${i}.babel2:/home/babel/ > /dev/null 2>&1
 #ssh到kf主机并执行shell
-  ssh -tt kf${i}.babel2 >> clean_log.log 2>&1 <<EOF
+  ssh -tt kf${i}.babel2 >/dev/null 2>&1 <<EOF
 if [ -e clean_file.log ];then
  rm clean_file.log
 fi
