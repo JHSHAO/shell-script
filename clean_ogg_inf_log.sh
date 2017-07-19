@@ -32,7 +32,7 @@ do
 #	rm $file
 done < $ogg_user_path/ogg_clean_file.log
 #磁盘空间大于80%，清理当天日志
-ogg_disk=$(df -TH | awk '$7=="/data/v01"{print $6}' | sed 's/%//g')
+ogg_disk=$(df -TH | awk '$1=="/dev/sda3"{print $6}' | sed 's/%//g')
 if [ $ogg_disk -ge 80 ]; then
 	echo "磁盘大小：$ogg_disk"
 	for file in `ls $ogg_root_path/dirrpt`; do
