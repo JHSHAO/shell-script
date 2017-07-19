@@ -13,11 +13,11 @@ done
 echo "完成删除日志！"
 #磁盘空间大于80%，清理当天日志
 ogg_disk=$(df -h | awk '$6=="/data/v01"{print $5}' | sed 's/%//g')
-if [ $ogg_disk -le 80 ]; then
+if [ $ogg_disk -ge 80 ]; then
 	echo "磁盘大小：$ogg_disk"
-#	for file in `ls $ogg_root_path/dirrpt`; do
-#		echo $file >/dev/null 2>&1
+	for file in `ls $ogg_root_path/dirrpt`; do
+		echo $file
 #		echo > $file
-#	done
+	done
 	echo "磁盘空间超过80%，清空日志！"
 fi
