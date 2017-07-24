@@ -21,19 +21,21 @@ do
 	echo "------------------------------------------------------------------------------------------------------------------"
 	echo -e "磁盘\n一.磁盘使用率"
 	v01=`sudo ssh -n $remotehost "df -TH" | grep v01 | awk '{print $6}' | tr -cd "[0-9]"`
+	v01_arail=`sudo ssh -n $remotehost "df -TH" | grep v01 | awk '{print $5}'`
 	v02=`sudo ssh -n $remotehost "df -TH"  | grep v02| awk '{print $6}' | tr -cd "[0-9]"`
-	if [ $v01 -ge 80 ]; then
-		echo -e "\033[31m/data/v01 已经使用 : ${v01}%\033[0m"
-		content+="${remotehost}的/data/v01磁盘超过80%。"
+	v02_arail=`sudo ssh -n $remotehost "df -TH"  | grep v02| awk '{print $5}'`
+	if [ $v01 -ge 90 ]; then
+		echo -e "\033[31m/data/v01 使用百分比: ${v01}%\033[0m"
+		content+="${remotehost}的/data/v01磁盘可用${v01_arail} 使用百分比${v01}%。"
 	else
-		echo "/data/v01 已经使用 : ${v01}%"	
+		echo "/data/v01 使用百分比: ${v01}%"	
 	fi
 
-	if [ $v02 -ge 80 ]; then
-		echo -e "\033[31m/data/v02 已经使用 : ${v02}%\033[0m"
-		content+="${remotehost}的/data/v02磁盘超过80%。"
+	if [ $v02 -ge 90 ]; then
+		echo -e "\033[31m/data/v02 使用百分比: ${v02}%\033[0m"
+		content+="${remotehost}的/data/v02磁盘可用${v02_arail} 使用百分比${v02}%。"
 	else
-		echo "/data/v02 已经使用 : ${v02}%"
+		echo "/data/v02 使用百分比: ${v02}%"
 	fi
 	echo "二.磁盘读写io"
 	device=`sudo ssh -n $remotehost "iostat | grep Device"`
@@ -113,8 +115,9 @@ done < $hostsfile
 #发送短信
 interface_addr="http://10.161.11.182:8082/monitor/rest/message/sendMessage"
 content_type="Content-Type:application/json"
+#recivers="13120228321,17600908312,13001927192,17600196269"
 recivers="17600908312"
-if [ ! -z $content ]; then
+if [ ! -z "$content" ]; then
 	curl $interface_addr -H $content_type -d "{\"recivers\":\"$recivers\",  \"content\": \"$content\"}"
 fi
 echo "scan over"
