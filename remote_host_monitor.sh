@@ -7,9 +7,9 @@ hostsfile="$path/hosts_remote.txt"
 content=""
 while read remotehost
 do
-	echo "------------------------------------------------------------------------------------------------------------------------"
+	echo "******************************************************************************************************************"
 	echo "IP:$remotehost"
-	echo "------------------------------------------------------------------------------------------------------------------"
+	echo "******************************************************************************************************************"
 	echo "内存"
 	mem=`sudo ssh -n $remotehost "free - m"`
 	memfree=`sudo ssh -n $remotehost "free - m" | grep Mem | awk '{print $4}'`
@@ -24,18 +24,18 @@ do
 	v01_arail=`sudo ssh -n $remotehost "df -TH" | grep v01 | awk '{print $5}'`
 	v02=`sudo ssh -n $remotehost "df -TH"  | grep v02| awk '{print $6}' | tr -cd "[0-9]"`
 	v02_arail=`sudo ssh -n $remotehost "df -TH"  | grep v02| awk '{print $5}'`
-	if [ $v01 -ge 90 ]; then
-		echo -e "\033[31m/data/v01 使用百分比: ${v01}%\033[0m"
-		content+="${remotehost}的/data/v01磁盘可用${v01_arail} 使用百分比${v01}%。"
+	if [ $v01 -ge 85 ]; then
+		echo -e "\033[31m/data/v01使用百分比: ${v01}%\033[0m"
+		content+="${remotehost}的/data/v01磁盘可用${v01_arail}，使用百分比${v01}%。"
 	else
-		echo "/data/v01 使用百分比: ${v01}%"	
+		echo "/data/v01使用百分比:${v01}%"	
 	fi
 
-	if [ $v02 -ge 90 ]; then
+	if [ $v02 -ge 85 ]; then
 		echo -e "\033[31m/data/v02 使用百分比: ${v02}%\033[0m"
-		content+="${remotehost}的/data/v02磁盘可用${v02_arail} 使用百分比${v02}%。"
+		content+="${remotehost}的/data/v02磁盘可用${v02_arail}，使用百分比${v02}%。"
 	else
-		echo "/data/v02 使用百分比: ${v02}%"
+		echo "/data/v02使用百分比:${v02}%"
 	fi
 	echo "二.磁盘读写io"
 	device=`sudo ssh -n $remotehost "iostat | grep Device"`
@@ -76,7 +76,7 @@ do
 	done
 	if [ $netcon -ge 18000 ]; then
 		echo -e "\033[31m总计共有${netcon}个连接.\033[0m"
-		content+="${remotehost}的网络连接数为${netcon}，过大。"
+		content+="${remotehost}网络连接数报警:${netcon}。"
 	else
 		echo "总计共有${netcon}个连接."
 	fi
@@ -96,7 +96,7 @@ do
 	cpu_idle=`sudo ssh -n $remotehost sar -u | tail -2 | awk 'NR==2{print $8}'`
 	cpu_1=`sudo ssh -n $remotehost sar -u | tail -2 | awk 'NR==1{print $1"\t",$4"\t",$7"\t",$9}'`
 	cpu_2=`sudo ssh -n $remotehost sar -u | tail -2 | awk 'NR==2{print $1"\t",$3"\t",$6"\t",$8}'`
-	if [ `expr $cpu_idle \<= 1` -eq 1 ]; then
+	if [ `echo $cpu_idle\<=1|bc` -eq 1 ]; then
 		echo -e "\033[31m$cpu_1\033[0m"	
 		echo -e "\033[31m$cpu_2\033[0m"
 	else
@@ -111,6 +111,17 @@ do
 	sudo ssh -n $remotehost pidstat|grep UID|awk '{print $4"\t",$8"\t",$10}'
 	sudo ssh -n $remotehost pidstat | sort -nr -k 8 | awk 'NR<=10{print $4"\t",$8"\t",$10}'
 	echo "------------------------------------------------------------------------------------------------------------------"
+	echo "负载"
+	load_ave=`sudo ssh -n $remotehost uptime`
+	load_ave_1=`sudo ssh -n $remotehost uptime | sed "s/.*average://g" | awk -F , '{print $1}'`
+	load_ave_5=`sudo ssh -n $remotehost uptime | sed "s/.*average://g" | awk -F , '{print $2}'`
+	load_ave_15=`sudo ssh -n $remotehost uptime | sed "s/.*average://g" | awk -F , '{print $3}'`
+	if [ `echo load_ave_1\>=5|bc` -eq 1 -o `echo $load_ave_5\>=5|bc` -eq 1 -o `echo $load_ave_15\>=5|bc` -eq 1 ]; then
+		echo -e "\033[31m$load_ave\033[0m"
+		content+="${remotehost}负载报警:${load_ave}。"
+	else
+		echo "$load_ave"
+	fi
 done < $hostsfile
 #发送短信
 interface_addr="http://10.161.11.182:8082/monitor/rest/message/sendMessage"
