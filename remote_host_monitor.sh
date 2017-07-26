@@ -69,12 +69,12 @@ do
 	echo "------------------------------------------------------------------------------------------------------------------"
 	echo -e "网络\n一.网络连接数\nIP地址\t\t连接数"
 	sudo ssh -n $remotehost netstat -an |grep 6667 | awk '{print $5}' | awk -F: '{print $1}'|sort -r|uniq -c|sort -nr|awk 'NR <=10{print}'|awk '{print$2"\t",$1}'
-	netnumarr=`sudo ssh -n $remotehost netstat -an |grep 6667 | awk '{print $5}' | awk -F: '{print $1}'|sort -r|uniq -c|sort -nr| awk '{print$1}'`
+	netnumarr=`sudo ssh -n $remotehost netstat -an|grep 6667|awk '{print $5}'|awk -F: '{print $1}'|sort -r|uniq -c|sort -nr|awk '{print$1}'`
 	netcon=0
 	for num in $netnumarr; do
 		netcon=`expr $netcon + $num`
 	done
-	if [ $netcon -ge 18000 ]; then
+	if [ $netcon -ge 5000 ]; then
 		echo -e "\033[31m总计共有${netcon}个连接.\033[0m"
 		content+="${remotehost}网络连接数报警:${netcon}。"
 	else

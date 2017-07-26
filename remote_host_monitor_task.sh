@@ -7,7 +7,7 @@ hostsfile="$path/hosts_remote.txt"
 content=""
 while read remotehost
 do
-	echo "******************************$remotehost***********************************"
+#	echo "******************************$remotehost***********************************"
 	#磁盘使用率
 	v01=`sudo ssh -n $remotehost "df -TH" | grep v01 | awk '{print $6}' | tr -cd "[0-9]"`
 	v01_arail=`sudo ssh -n $remotehost "df -TH" | grep v01 | awk '{print $5}'`
@@ -21,12 +21,13 @@ do
 		content+="${remotehost}的/data/v02磁盘可用${v02_arail}，使用百分比${v02}%。"
 	fi
 	#网络连接数
-	netnumarr=`sudo ssh -n $remotehost netstat -an |grep 6667 | awk '{print $5}' | awk -F: '{print $1}'|sort -r|uniq -c|sort -nr| awk '{print$1}'`
-	netcon=0
-	for num in $netnumarr; do
-		netcon=`expr $netcon + $num`
-	done
-	if [ $netcon -ge 18000 ]; then
+#	netnumarr=`sudo ssh -n $remotehost netstat -an|grep 6667|awk '{print $5}'|awk -F: '{print $1}'|sort -r|uniq -c|sort -nr|awk '{print$1}'`
+#	netcon=0
+#	for num in $netnumarr; do
+#		netcon=`expr $netcon + $num`
+#	done
+	netcon=`sudo ssh -n $remotehost netstat -an|grep 6667|wc -l`
+	if [ $netcon -ge 5000 ]; then
 		content+="${remotehost}网络连接数报警:${netcon}。"
 	fi
 	#负载
@@ -41,8 +42,8 @@ done < $hostsfile
 #发送短信
 interface_addr="http://10.161.11.182:8082/monitor/rest/message/sendMessage"
 content_type="Content-Type:application/json"
-#recivers="13120228321,17600908312,13001927192,17600196269"
-recivers="17600908312"
+recivers="13120228321,17600908312,13001927192,17600196269"
+#recivers="17600908312"
 if [ ! -z "$content" ]; then
 	curl $interface_addr -H $content_type -d "{\"recivers\":\"$recivers\",  \"content\": \"$content\"}"
 fi
