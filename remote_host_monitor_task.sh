@@ -35,15 +35,15 @@ do
 	load_ave_1=`sudo ssh -n $remotehost uptime | sed "s/.*average://g" | awk -F , '{print $1}'`
 	load_ave_5=`sudo ssh -n $remotehost uptime | sed "s/.*average://g" | awk -F , '{print $2}'`
 	load_ave_15=`sudo ssh -n $remotehost uptime | sed "s/.*average://g" | awk -F , '{print $3}'`
-	if [ `echo load_ave_1\>=6|bc` -eq 1 -o `echo $load_ave_5\>=6|bc` -eq 1 -o `echo $load_ave_15\>=6|bc` -eq 1 ]; then
+	if [ `echo load_ave_1\>=10|bc` -eq 1 -o `echo $load_ave_5\>=10|bc` -eq 1 -o `echo $load_ave_15\>=10|bc` -eq 1 ]; then
 		content+="${remotehost}负载报警:${load_ave}。"
 	fi
 done < $hostsfile
 #发送短信
 interface_addr="http://10.161.11.182:8082/monitor/rest/message/sendMessage"
 content_type="Content-Type:application/json"
-recivers="13120228321,17600908312,13001927192,17600196269"
-#recivers="17600908312"
+#recivers="13120228321,17600908312,13001927192,17600196269,15510798997"
+recivers="17600908312"
 if [ ! -z "$content" ]; then
 	curl $interface_addr -H $content_type -d "{\"recivers\":\"$recivers\",  \"content\": \"$content\"}"
 fi
