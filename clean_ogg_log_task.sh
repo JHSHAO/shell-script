@@ -3,7 +3,6 @@ cd "$(dirname "$0")"
 path=`pwd`
 hostsfile="$path/hosts_ogg.txt"
 
-ogg_root_path="/data/v01/ogg12"
 ogg_user_path="/home/ogg"
 
 while read remotehost
@@ -12,7 +11,7 @@ do
 	sudo ssh -tt $remotehost << EOF
 #清理ogg的dirrpt目录日志
 chmod 755  $ogg_user_path/clean_ogg_log.sh
-$ogg_user_path/clean_ogg_log.sh $ogg_root_path $ogg_user_path
+$ogg_user_path/clean_ogg_log.sh $ogg_user_path
 exit
 EOF
 done < $hostsfile

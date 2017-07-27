@@ -1,6 +1,6 @@
 #!/bin/bash
-ogg_root_path=$1
-ogg_user_path=$2
+ogg_root_path=$OGGPATH
+ogg_user_path=$1
 if [ -e "$ogg_user_path/ogg_clean_file.log" ]; then
 	rm $ogg_user_path/ogg_clean_file.log
 fi
@@ -32,7 +32,12 @@ do
 #	rm $file
 done < $ogg_user_path/ogg_clean_file.log
 #磁盘空间大于80%，清理当天日志
-ogg_disk=$(df -TH | awk '$7=="/data/v01"{print $6}' | sed 's/%//g')
+if [ "$ogg_root_path" == "/data/v01/ogg12" ]; then
+	ogg_disk=$(df -TH | awk '$7=="/data/v01"{print $6}' | sed 's/%//g')
+else
+	ogg_disk=$(df -TH | awk '$1=="/dev/sda3"{print $6}' | sed 's/%//g')
+fi
+
 if [ $ogg_disk -ge 80 ]; then
 	echo "磁盘大小：$ogg_disk"
 	for file in `ls $ogg_root_path/dirrpt`; do
