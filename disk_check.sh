@@ -14,11 +14,9 @@ do
 	disk_v01_avail=`sudo ssh -n $hosts_ip "df -TH" | awk '$7=="/data/v01"{print $5}'`
 	disk_v02=`sudo ssh -n $hosts_ip "df -TH" | awk '$7=="/data/v02"{print $6}' | sed 's/%//'`
 	disk_v02_avail=`sudo ssh -n $hosts_ip "df -TH" | awk '$7=="/data/v02"{print $5}'`
-	echo "*****************************************************************" >> $path/disk_status
-	echo "${hosts_name}" >> $path/disk_status
+	echo "****************************${hosts_name}*************************************" >> $path/disk_status
 	if [ $disk_v01 -ge 80 -o $disk_v02 -ge 80 ]; then
-		echo "******************************************************" 
-		echo "${hosts_name}" 
+		echo "***********************${hosts_name}*******************************" 
 	fi
 	if [ $disk_v01 -ge 80 ]; then
 		echo -en "\033[31m/data/v01\t${disk_v01}%\t${disk_v01_avail}\033[0m" >> $path/disk_status
