@@ -37,7 +37,7 @@ do
 #       netcon=`expr $netcon + $num`
 #   done
     netcon=`sudo ssh -n $remotehost netstat -an|grep 6667|wc -l`
-    if [ $netcon -ge 5000 ]; then
+    if [ $netcon -ge 10000 ]; then
         content+="${remotehost}网络连接数报警:${netcon}。"
     fi
     #负载
@@ -51,8 +51,8 @@ do
     #发送短信
     interface_addr="http://10.161.11.182:8082/monitor/rest/message/sendMessage"
     content_type="Content-Type:application/json"
-#    recivers="13120228321,17600908312,13001927192,17600196269,15510798997"
-    recivers="17600908312"
+    recivers="13120228321,17600908312,13001927192,17600196269,15510798997"
+ #   recivers="17600908312"
     if [ ! -z "$content" ]; then
         curl $interface_addr -H $content_type -d "{\"recivers\":\"$recivers\",  \"content\": \"$content\"}"
     fi
