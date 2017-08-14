@@ -5,14 +5,25 @@ hostsfile="$path/hosts_remote.txt"
 
 while read remotehost
 do
-#    echo "******************************$remotehost***********************************"
+    echo "******************************$remotehost***********************************"
     #短信内容
     content=""
+    #判断主机是否正常，即能否ssh链接。
+    sudo ssh -n $remotehost "df -TH" > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        content+="${remotehost}主机不能ssh链接，可能宕机。"
+    fi
     #磁盘使用率
     v01=`sudo ssh -n $remotehost "df -TH" | grep v01 | awk '{print $6}' | tr -cd "[0-9]"`
     v01_arail=`sudo ssh -n $remotehost "df -TH" | grep v01 | awk '{print $5}'`
     v02=`sudo ssh -n $remotehost "df -TH"  | grep v02| awk '{print $6}' | tr -cd "[0-9]"`
     v02_arail=`sudo ssh -n $remotehost "df -TH"  | grep v02| awk '{print $5}'`
+    if [ "$remotehost" == "inf13" ]; then
+        v01=`sudo ssh -n $remotehost "df -TH" | grep "/dev/sda3" | awk '{print $6}' | tr -cd "[0-9]"`
+        v01_arail=`sudo ssh -n $remotehost "df -TH" | grep "/dev/sda3" | awk '{print $5}'`
+        v02=`sudo ssh -n $remotehost "df -TH"  | grep "/dev/sda3" | awk '{print $6}' | tr -cd "[0-9]"`
+        v02_arail=`sudo ssh -n $remotehost "df -TH"  | grep "/dev/sda3" | awk '{print $5}'`     
+    fi
     if [ $v01 -ge 90 ]; then
         content+="${remotehost}的/data/v01可用${v01_arail},使用百分比${v01}%。"
         large_files=`sudo ssh -n $remotehost du --exclude="/data/v01/ProvincesDatas/*" --max-depth=3 /data/v01/ | sort -n | tail -n 8 | awk '{print $2}'`
@@ -52,7 +63,7 @@ do
     interface_addr="http://10.161.11.182:8082/monitor/rest/message/sendMessage"
     content_type="Content-Type:application/json"
     recivers="13120228321,17600908312,13001927192,17600196269,15510798997"
- #   recivers="17600908312"
+    #recivers="17600908312"
     if [ ! -z "$content" ]; then
         curl $interface_addr -H $content_type -d "{\"recivers\":\"$recivers\",  \"content\": \"$content\"}"
     fi
