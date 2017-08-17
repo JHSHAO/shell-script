@@ -22,9 +22,6 @@ dk703
 dk801
 dk802
 dk803
-uezk1
-uezk2
-uezk3
 ue1
 ue2
 ue3
@@ -33,4 +30,6 @@ ue5
 ue6
 ue7
 ue8
+storage2
 storage10
+inf13
