@@ -12,9 +12,10 @@ do
 		mkdir -p "$logPath"
 	fi
 
-	echo "[`date`] connect to  $remotehost at port 6667 , info:" >> $logPath/netconect
-	sudo ssh -n $remotehost "netstat -an |grep 6667 | awk '{print \$5}' | awk -F: '{print \$1}' | sort -r | uniq -c  | sort -nr  " >> $logPath/netconect
-	echo "scan port 6667 @$remotehost finish!" >> $logPath/netconect
+	echo "[`date`]===================system  diskinfo begin============" >> $logPath/diskinfo
+	sudo ssh -n $remotehost "df -TH" >> $logPath/diskinfo	
+	echo "[`date`]=================== system diskinfo end ============" >> $logPath/diskinfo
+
 	echo "[`date`]===================system uptime begin============" >> $logPath/uptime
 	sudo ssh -n $remotehost "uptime" >> $logPath/uptime
 	echo "[`date`]=================== system uptime end ============" >> $logPath/uptime
@@ -47,10 +48,10 @@ do
         sudo ssh -n $remotehost "dmesg | tail -n 100" >> $logPath/dmesg
         echo "[`date`]=================== system dmesg end ============" >> $logPath/dmesg
 	
-	echo "[`date`]===================system  diskinfo begin============" >> $logPath/diskinfo
-	sudo ssh -n $remotehost "df -TH" >> $logPath/diskinfo	
-	echo "[`date`]=================== system diskinfo end ============" >> $logPath/diskinfo
+	echo "[`date`] connect to  $remotehost at port 6667 , info:" >> $logPath/netconect
+	sudo ssh -n $remotehost "netstat -an |grep 6667 | awk '{print \$5}' | awk -F: '{print \$1}' | sort -r | uniq -c  | sort -nr  " >> $logPath/netconect
+	echo "scan port 6667 @$remotehost finish!" >> $logPath/netconect
+
 	echo "[`date`] $remotehost system status <<<<<<<<<<<<"
 done < $hostsfile
 echo "finish port scan!"
-
