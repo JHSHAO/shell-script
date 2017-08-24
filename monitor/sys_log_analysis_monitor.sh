@@ -1,9 +1,14 @@
 #!/bin/bash
 #分析监控日志，查看监控状态，超过正常值报警
+cd "$(dirname "$0")"
+path=`pwd`
 hostsfile="/home/babel/wtf/script/hosts.txt"
 
+#短信内容
+#sms_content=""
 while read remotehost
 do
+    #短信内容
     sms_content=""
     log_path="/home/babel/wtf/script/dkmonitor/${remotehost}_$(date +'%Y-%m-%d')"
 
@@ -20,12 +25,22 @@ do
     disk_v01_use=`echo ${disk_v01[1]} | sed 's/%//'`
     disk_v02=(`sed -n "${disk_row_num[0]},${disk_row_num[1]}p" $log_path/diskinfo | grep "/data/v02" | awk '{print $5"\t"$6}'`)
     disk_v02_use=`echo ${disk_v01[1]} | sed 's/%//'`
-    if [ $disk_v01_use -ge 40 ]; then
+    if [ $disk_v01_use -ge 90 ]; then
         sms_content+="${remotehost}的/data/v01可用${disk_v01[0]},使用百分比${disk_v01_use}%。"
+        large_files=`sudo ssh -n $remotehost du --exclude="/data/v01/ProvincesDatas/*" --max-depth=3 /data/v01/ | sort -n | tail -n 8 | awk '{print $2}'`
+        for large_file in $large_files; do
+            large_file_size=`sudo ssh -n $remotehost du -h --exclude="/data/v01/ProvincesDatas/*" --max-depth=0 $large_file | awk '{print $1"="$2}'`
+            sms_content+="$large_file_size。"
+        done
     fi
 
-    if [ $disk_v02_use -ge 40 ]; then
+    if [ $disk_v02_use -ge 90 ]; then
         sms_content+="${remotehost}的/data/v02可用${disk_v02[0]},使用百分比${disk_v02_use}%。"
+        large_files=`sudo ssh -n $remotehost du --exclude="/data/v02/ProvincesDatas/*" --max-depth=3 /data/v02/ | sort -n | tail -n 8 | awk '{print $2}'`
+        for large_file in $large_files; do
+            large_file_size=`sudo ssh -n $remotehost du -h --exclude="/data/v02/ProvincesDatas/*" --max-depth=0 $large_file | awk '{print $1"="$2}'`
+            sms_content+="$large_file_size。"
+        done
     fi
 
     #kafka端口6667的网络连接数
@@ -48,16 +63,27 @@ do
     fi
 
     #发送短信
-    #interface_addr="http://10.161.11.182:8082/monitor/rest/message/sendMessage"
-    #content_type="Content-Type:application/json"
-    ##recivers="13120228321,17600908312,13001927192,17600196269,15510798997"
-    #recivers="17600908312"
-    #if [ ! -z "$content" ]; then
-    #    curl $interface_addr -H $content_type -d "{\"recivers\":\"$recivers\",  \"content\": \"$content\"}"
-    #    send_date_name=`date +"%Y_%m_%d"`
-    #    send_time=`date +"%Y-%m-%d %H:%M:%S"`
-    #    find $path -name "sms_message_*.log" -type f -mtime +7 -exec rm {} \;
-    #    echo "{\"sendTime\":\"${send_time}\",\"content\":\"${content}\"}" >> $path/sms_message_${send_date_name}.log
-    #fi
-    echo "${remotehost}的短信内容：${sms_content}"
+    interface_addr="http://10.161.11.182:8082/monitor/rest/message/sendMessage"
+    content_type="Content-Type:application/json"
+    #recivers="13120228321,17600908312,13001927192,17600196269,15510798997"
+    recivers="17600908312"
+    if [ ! -z "$sms_content" ]; then
+        curl $interface_addr -H $content_type -d "{\"recivers\":\"$recivers\",  \"content\": \"$sms_content\"}"
+        send_date_name=`date +"%Y_%m_%d"`
+        send_time=`date +"%Y-%m-%d %H:%M:%S"`
+        find $path -name "sms_message_*.log" -type f -mtime +7 -exec rm {} \;
+        echo "{\"sendTime\":\"${send_time}\",\"smsContent\":\"${sms_content}\"}" >> $path/sms_message_${send_date_name}.log
+    fi
 done < $hostsfile
+#发送短信
+#interface_addr="http://10.161.11.182:8082/monitor/rest/message/sendMessage"
+#content_type="Content-Type:application/json"
+##recivers="13120228321,17600908312,13001927192,17600196269,15510798997"
+#recivers="17600908312"
+#if [ ! -z "$sms_content" ]; then
+#    curl $interface_addr -H $content_type -d "{\"recivers\":\"$recivers\",  \"content\": \"$sms_content\"}"
+#    send_date_name=`date +"%Y_%m_%d"`
+#    send_time=`date +"%Y-%m-%d %H:%M:%S"`
+#    find $path -name "sms_message_*.log" -type f -mtime +7 -exec rm {} \;
+#    echo "{\"sendTime\":\"${send_time}\",\"smsContent\":\"${sms_content}\"}" >> $path/sms_message_${send_date_name}.log
+#fi
