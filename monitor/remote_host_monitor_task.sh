@@ -65,7 +65,7 @@ do
         curl $interface_addr -H $content_type -d "{\"recivers\":\"$recivers\",  \"content\": \"$content\"}"
         send_date_name=`date +"%Y_%m_%d"`
         send_time=`date +"%Y-%m-%d %H:%M:%S"`
-        find $path -name "sms_message_*.log" -type f -mtime +7 -exec rm {} \;
-        echo "{\"sendTime\":\"${send_time}\",\"content\":\"${content}\"}" >> $path/sms_message_${send_date_name}.log
+        find $path -name "monitor_sms_message_*.log" -type f -mtime +7 -exec rm {} \;
+        echo "{\"sendTime\":\"${send_time}\",\"content\":\"${content}\"}" >> $path/monitor_sms_message_${send_date_name}.log
     fi
 done < $hostsfile
