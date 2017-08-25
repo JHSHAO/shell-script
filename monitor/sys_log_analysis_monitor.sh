@@ -45,14 +45,31 @@ do
 
     #kafka端口6667的网络连接数
     conn_row_num=(`cat -n $log_path/netconect | grep "6667" | tail -n 2 | awk '{print $1}'`)
+    conn_row_step=$[${conn_row_num[1]}-${conn_row_num[0]}]
+    #判断单个ip连接数，关注连接数最高的前10个
+    if [ $conn_row_step -gt 1 ]; then
+        conn_count_top10=(`sed -n "$[${conn_row_num[0]}+1],$[${conn_row_num[0]}+10]p" $log_path/netconect | awk '{print $1}'`)
+        conn_temp_content=""
+        for ((i=0;i<10;i++))
+        do
+            if [ ${conn_count_top10[$i]} -ge 1000 ]; then
+                conn_row=`sed -n "$[${conn_row_num[0]}+$i+1]p" $log_path/netconect | awk '{print $1"="$2}'`
+                conn_temp_content+="${conn_row}。"
+            fi
+        done
+        if [ ! -z "$conn_temp_content" ]; then
+            sms_content+="${remotehost}单个IP连接数报警:${conn_temp_content}"
+        fi
+    fi
+    #计算总连接数
     conn_count_arr=(`sed -n "$[${conn_row_num[0]}+1],$[${conn_row_num[1]}-1]p" $log_path/netconect | awk '{print $1}'`)
     conn_total=""
     for conn_count in ${conn_count_arr[@]}
     do
         conn_total=$[${conn_total}+${conn_count}]
     done
-    if [ $conn_total -ge 10000 ]; then
-        sms_content+="${remotehost}网络连接数报警:${conn_total}。"
+    if [ $conn_total -ge 15000 ]; then
+        sms_content+="${remotehost}连接总数报警:${conn_total}。"
     fi
 
     #负载
