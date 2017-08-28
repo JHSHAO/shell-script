@@ -11,7 +11,7 @@ if [ ! -z "$str" ]; then
     len=${#str}
     num=$[$len/$step]
     if [ $[$len%$step] -ne 0 ]; then
-        num+=1
+        num=$[$num+1]
     fi
     
     for ((i=0;i<$num;i++))
