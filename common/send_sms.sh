@@ -8,19 +8,22 @@ content_type="Content-Type:application/json"
 
 recivers=$1
 sms_content=$2
+step=$3
+if [ -z "$step" ]; then
+    step=250
+fi
 
 if [ ! -z "$sms_content" ]; then
     len=${#sms_content}
-    step=120
     num=$[$len/$step]
     if [ $[$len%$step] -ne 0 ]; then
-        num+=1
+        num=$[$num+1]    
     fi
-    
+
     for ((i=0;i<$num;i++))
     do
-       sms_content_segment=${sms_content:$[$step*$i]:$step} 
-       curl $interface_addr -H $content_type -d "{\"recivers\":\"$recivers\",  \"content\": \"$sms_content_segment\"}"
+       sms_content_segment=${sms_content:$[$step*$i]:$step}
+       curl $interface_addr -H $content_type -d "{\"recivers\":\"$recivers\",  \"content\": \"$sms_content_segment\"}" > /dev/null 2>&1
        send_date_name=`date +"%Y_%m_%d"`
        send_time=`date +"%Y-%m-%d %H:%M:%S"`
        find $path -name "sms_message_*.log" -type f -mtime +7 -exec rm {} \;
