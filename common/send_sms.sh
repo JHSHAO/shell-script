@@ -19,7 +19,6 @@ if [ ! -z "$sms_content" ]; then
     
     for ((i=0;i<$num;i++))
     do
-       echo ${sms_content:$[$step*$i]:$step} 
        sms_content_segment=${sms_content:$[$step*$i]:$step} 
        curl $interface_addr -H $content_type -d "{\"recivers\":\"$recivers\",  \"content\": \"$sms_content_segment\"}"
        send_date_name=`date +"%Y_%m_%d"`
