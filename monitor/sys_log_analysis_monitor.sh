@@ -3,6 +3,7 @@
 cd "$(dirname "$0")"
 path=`pwd`
 hostsfile="/home/babel/wtf/script/hosts.txt"
+send_sms_command=$1
 
 #短信内容
 #sms_content=""
@@ -52,7 +53,7 @@ do
         conn_temp_content=""
         for ((i=0;i<10;i++))
         do
-            if [ ${conn_count_top10[$i]} -ge 1000 ]; then
+            if [ ${conn_count_top10[$i]} -ge 300 ]; then
                 conn_row=`sed -n "$[${conn_row_num[0]}+$i+1]p" $log_path/netconect | awk '{print $1"="$2}'`
                 conn_temp_content+="${conn_row}。"
             fi
@@ -83,12 +84,12 @@ do
     #recivers="13120228321,17600908312,13001927192,17600196269,15510798997"
     recivers="17600908312"
     if [ ! -z "$sms_content" ]; then
-       /home/babel/wangxuan/common/send_sms.sh $recivers $sms_content 250
+       $send_sms_command $recivers $sms_content 250
     fi
 done < $hostsfile
 #发送短信
 ##recivers="13120228321,17600908312,13001927192,17600196269,15510798997"
 #recivers="17600908312"
 #if [ ! -z "$sms_content" ]; then
-#    /home/babel/wangxuan/common/send_sms.sh $recivers $sms_content 250
+#    $send_sms_command $recivers $sms_content 250
 #fi
