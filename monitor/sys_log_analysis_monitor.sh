@@ -4,9 +4,12 @@ cd "$(dirname "$0")"
 path=`pwd`
 hostsfile="/home/babel/wtf/script/hosts.txt"
 send_sms_command=$1
+send_email_command=$2
 
 #短信内容
 #sms_content=""
+#邮件内容
+email_content=""
 while read remotehost
 do
     #短信内容
@@ -25,13 +28,31 @@ do
     disk_v01=(`sed -n "${disk_row_num[0]},${disk_row_num[1]}p" $log_path/diskinfo | grep "/data/v01" | awk '{print $5"\t"$6}'`)
     disk_v01_use=`echo ${disk_v01[1]} | sed 's/%//'`
     disk_v02=(`sed -n "${disk_row_num[0]},${disk_row_num[1]}p" $log_path/diskinfo | grep "/data/v02" | awk '{print $5"\t"$6}'`)
-    disk_v02_use=`echo ${disk_v01[1]} | sed 's/%//'`
+    disk_v02_use=`echo ${disk_v02[1]} | sed 's/%//'`
+    if [ $disk_v01_use -ge 80 ]; then
+        email_content+="${remotehost}的/data/v01可用${disk_v01[0]},使用百分比${disk_v01_use}%。"
+        large_files=`sudo ssh -n $remotehost du --exclude="/data/v01/ProvincesDatas/*" --max-depth=3 /data/v01/ | sort -n | tail -n 8 | awk '{print $2}'`
+        for large_file in $large_files; do
+            large_file_size=`sudo ssh -n $remotehost du -h --exclude="/data/v01/ProvincesDatas/*" --max-depth=0 $large_file | awk '{print $1"="$2}'`
+            email_content+="$large_file_size。"
+        done
+    fi
+
     if [ $disk_v01_use -ge 90 ]; then
         sms_content+="${remotehost}的/data/v01可用${disk_v01[0]},使用百分比${disk_v01_use}%。"
         large_files=`sudo ssh -n $remotehost du --exclude="/data/v01/ProvincesDatas/*" --max-depth=3 /data/v01/ | sort -n | tail -n 8 | awk '{print $2}'`
         for large_file in $large_files; do
             large_file_size=`sudo ssh -n $remotehost du -h --exclude="/data/v01/ProvincesDatas/*" --max-depth=0 $large_file | awk '{print $1"="$2}'`
             sms_content+="$large_file_size。"
+        done
+    fi
+
+    if [ $disk_v02_use -ge 80 ]; then
+        email_content+="${remotehost}的/data/v02可用${disk_v02[0]},使用百分比${disk_v02_use}%。"
+        large_files=`sudo ssh -n $remotehost du --exclude="/data/v02/ProvincesDatas/*" --max-depth=3 /data/v02/ | sort -n | tail -n 8 | awk '{print $2}'`
+        for large_file in $large_files; do
+            large_file_size=`sudo ssh -n $remotehost du -h --exclude="/data/v02/ProvincesDatas/*" --max-depth=0 $large_file | awk '{print $1"="$2}'`
+            email_content+="$large_file_size。"
         done
     fi
 
@@ -53,7 +74,7 @@ do
         conn_temp_content=""
         for ((i=0;i<10;i++))
         do
-            if [ ${conn_count_top10[$i]} -ge 300 ]; then
+            if [ ${conn_count_top10[$i]} -ge 1000 ]; then
                 conn_row=`sed -n "$[${conn_row_num[0]}+$i+1]p" $log_path/netconect | awk '{print $1"="$2}'`
                 conn_temp_content+="${conn_row}。"
             fi
@@ -85,11 +106,23 @@ do
     recivers="17600908312"
     if [ ! -z "$sms_content" ]; then
        $send_sms_command $recivers $sms_content 250
+       send_date_name=`date +"%Y_%m_%d"`
+       send_time=`date +"%Y-%m-%d %H:%M:%S"`
+       find $path -name "sms_message_*.log" -type f -mtime +7 -exec rm {} \;
+       echo "{\"sendTime\":\"${send_time}\",\"smsContent\":\"${sms_content}\"}" >> $path/sms_message_${send_date_name}.log
     fi
 done < $hostsfile
-#发送短信
-##recivers="13120228321,17600908312,13001927192,17600196269,15510798997"
-#recivers="17600908312"
-#if [ ! -z "$sms_content" ]; then
-#    $send_sms_command $recivers $sms_content 250
-#fi
+#发送邮件
+#to_address="wutf5@chinaunicom.cn,microcosm8023@163.com,wangc238@chinaunicom.cn,apache_jianhua@163.com,1160880871@qq.com"
+to_address="1160880871@qq.com"
+cc_address="null"
+subject="主机系统监控报警"
+user_name="hqs-cbss-babel@chinaunicom.cn"
+password="E94#l#eE"
+if [ ! -z "$email_content" ]; then
+   $send_email_command $to_address $cc_address $subject $user_name $password $email_content
+   send_date_name=`date +"%Y_%m_%d"`
+   send_time=`date +"%Y-%m-%d %H:%M:%S"`
+   find $path -name "email_message_*.log" -type f -mtime +7 -exec rm {} \;
+   echo "{\"sendTime\":\"${send_time}\",\"emailContent\":\"${email_content}\"}" >> $path/email_message_${send_date_name}.log
+fi
