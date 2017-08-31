@@ -3,8 +3,9 @@ cd "$(dirname "$0")"
 path=`pwd`
 hostsfile="$path/hosts.txt"
 
-while read remotehost
+while read remotehosts
 do
+	remotehost=`echo ${remotehosts} | awk '{print $1}'`
 	echo "[`date`] $remotehost system status >>>>>>>>>>>>"
 	logPath=dkmonitor/${remotehost}_$(date +'%Y-%m-%d')
 	echo "logPath:$logPath"
