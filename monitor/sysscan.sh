@@ -3,8 +3,9 @@ cd "$(dirname "$0")"
 path=`pwd`
 hostsfile="$path/hosts.txt"
 
-while read remotehost
+while read remotehosts
 do
+	remotehost=`echo ${remotehosts} | awk '{print $1}'`
 	echo "[`date`] $remotehost system status >>>>>>>>>>>>"
 	echo "connect to  $remotehost at port 6667 , info:"
 	ssh -n $remotehost "netstat -an |grep 6667 | awk '{print \$5}' | awk -F: '{print \$1}' | sort -r | uniq -c  | sort -nr  "
