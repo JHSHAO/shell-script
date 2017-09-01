@@ -33,12 +33,14 @@ do
     disk_v02=(`sed -n "${disk_row_num[0]},${disk_row_num[1]}p" $log_path/diskinfo | grep "/data/v02" | awk '{print $5"\t"$6}'`)
     disk_v02_use=`echo ${disk_v02[1]} | sed 's/%//'`
     if [ $disk_v01_use -ge 80 ]; then
-        email_content+="${remotehost_name}:文件系统/data/v01可用${disk_v01[0]},使用百分比${disk_v01_use}%。"
+        email_content+="<div>${remotehost_name}:文件系统/data/v01可用${disk_v01[0]},使用百分比${disk_v01_use}%。</dvi>"
         large_files=`sudo ssh -n $remotehost du --exclude="/data/v01/ProvincesDatas/*" --max-depth=3 /data/v01/ | sort -n | tail -n 8 | awk '{print $2}'`
+        email_content+="<div>其中大文件："
         for large_file in $large_files; do
             large_file_size=`sudo ssh -n $remotehost du -h --exclude="/data/v01/ProvincesDatas/*" --max-depth=0 $large_file | awk '{print $1"="$2}'`
             email_content+="$large_file_size。"
         done
+        email_content+="</div>"
     fi
 
     if [ $disk_v01_use -ge 90 ]; then
@@ -51,12 +53,14 @@ do
     fi
 
     if [ $disk_v02_use -ge 80 ]; then
-        email_content+="${remotehost_name}:文件系统/data/v02可用${disk_v02[0]},使用百分比${disk_v02_use}%。"
+        email_content+="<div>${remotehost_name}:文件系统/data/v02可用${disk_v02[0]},使用百分比${disk_v02_use}%。</div>"
         large_files=`sudo ssh -n $remotehost du --exclude="/data/v02/ProvincesDatas/*" --max-depth=3 /data/v02/ | sort -n | tail -n 8 | awk '{print $2}'`
+        email_content+="<div>其中大文件："
         for large_file in $large_files; do
             large_file_size=`sudo ssh -n $remotehost du -h --exclude="/data/v02/ProvincesDatas/*" --max-depth=0 $large_file | awk '{print $1"="$2}'`
             email_content+="$large_file_size。"
         done
+        email_content+="</div>"
     fi
 
     if [ $disk_v02_use -ge 90 ]; then
