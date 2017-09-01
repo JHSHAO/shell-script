@@ -17,19 +17,19 @@ do
 	echo "***************************${hosts_name}**************************************" >> $path/disk_status
 	echo -en "/data/v01\t${disk_v01}%\t${disk_v01_avail}" >> $path/disk_status
 	echo -e "\t/data/v02\t${disk_v02}%\t${disk_v02_avail}" >> $path/disk_status
-	if [ $disk_v01 -ge 70 -o $disk_v02 -ge 70 ]; then
+	if [ $disk_v01 -ge 80 -o $disk_v02 -ge 80 ]; then
 		echo -e "\033[31m**************************${hosts_name}********************************\033[0m"
 	else
 		echo "***************************${hosts_name}********************************"
 	fi
 
-	if [ $disk_v01 -ge 70 ]; then
+	if [ $disk_v01 -ge 80 ]; then
 		echo -en "\033[31m/data/v01\t${disk_v01}%\t${disk_v01_avail}\033[0m" 
 	else	
 		echo -en "/data/v01\t${disk_v01}%\t${disk_v01_avail}" 
 	fi
 
-	if [ $disk_v02 -ge 70 ]; then
+	if [ $disk_v02 -ge 80 ]; then
 		echo -e "\033[31m\t/data/v02\t${disk_v02}%\t${disk_v02_avail}\033[0m"
 	else
 		echo -e "\t/data/v02\t${disk_v02}%\t${disk_v02_avail}"
