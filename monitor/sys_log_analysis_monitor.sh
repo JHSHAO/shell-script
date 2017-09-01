@@ -115,7 +115,6 @@ do
        $send_sms_command $recivers $sms_content 250
        send_date_name=`date +"%Y_%m_%d"`
        send_time=`date +"%Y-%m-%d %H:%M:%S"`
-       find $path -name "sms_message_*.log" -type f -mtime +7 -exec rm {} \;
        echo "{\"sendTime\":\"${send_time}\",\"smsContent\":\"${sms_content}\"}" >> $path/sms_message_${send_date_name}.log
     fi
 done < $hostsfile
@@ -127,9 +126,23 @@ subject="主机系统监控报警"
 user_name="hqs-cbss-babel@chinaunicom.cn"
 password="E94#l#eE"
 if [ ! -z "$email_content" ]; then
-   $send_email_command $to_address $cc_address $subject $user_name $password $email_content
+   #记录发送邮件日志文件名字中的日期部分
    send_date_name=`date +"%Y_%m_%d"`
-   send_time=`date +"%Y-%m-%d %H:%M:%S"`
-   find $path -name "email_message_*.log" -type f -mtime +7 -exec rm {} \;
-   echo "{\"sendTime\":\"${send_time}\",\"emailContent\":\"${email_content}\"}" >> $path/email_message_${send_date_name}.log
+   if [ ! -e "$path/email_message_${send_date_name}.log" ]; then
+       touch $path/email_message_${send_date_name}.log
+   fi
+   #上次发送邮件的时间
+   last_send_time=`grep "sendTime" $path/email_message_${send_date_name}.log | tail -n 1 | awk -F \" '{print $4}'`
+   last_send_stamp=`date -d "$last_send_time" +"%s"`
+   current_stamp=`date +"%s"`
+   interval_min=$[($current_stamp-$last_send_stamp)/60]
+   #邮件发送频率30分钟
+   if [ $interval_min -ge 30 ]; then
+       $send_email_command $to_address $cc_address $subject $user_name $password $email_content
+       send_time=`date +"%Y-%m-%d %H:%M:%S"`
+       echo "{\"sendTime\":\"${send_time}\",\"emailContent\":\"${email_content}\"}" >> $path/email_message_${send_date_name}.log
+   fi
 fi
+#清理7天之前记录发送短信和邮件的日志
+find $path -name "sms_message_*.log" -type f -mtime +7 -exec rm {} \;
+find $path -name "email_message_*.log" -type f -mtime +7 -exec rm {} \;
