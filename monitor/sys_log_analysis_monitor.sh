@@ -91,7 +91,7 @@ do
             fi
         done
         if [ ! -z "$conn_temp_content" ]; then
-            sms_content+="${remotehost}单个IP连接数报警:${conn_temp_content}"
+            sms_content+="${remotehost_name}单个IP连接数报警:${conn_temp_content}"
         fi
     fi
     #计算总连接数
@@ -102,14 +102,14 @@ do
         conn_total=$[${conn_total}+${conn_count}]
     done
     if [ $conn_total -ge 15000 ]; then
-        sms_content+="${remotehost}连接总数报警:${conn_total}。"
+        sms_content+="${remotehost_name}连接总数报警:${conn_total}。"
     fi
 
     #负载
     uptime_row_num=(`cat -n $log_path/uptime | grep "uptime" | tail -n 2 | awk '{print $1}'`)
     load_aver_arr=(`sed -n "$[${uptime_row_num[0]}+1],$[${uptime_row_num[1]}-1]p" $log_path/uptime | sed "s/.*average://g" | awk -F , '{print $1"\t"$2"\t"$3}'`)
     if [ `echo ${load_aver_arr[0]}\>=10|bc` -eq 1 -o `echo ${load_aver_arr[1]}\>=10|bc` -eq 1 -o `echo ${load_aver_arr[2]}\>=10|bc` -eq 1 ]; then
-        sms_content+="${remotehost}负载报警:${load_aver_arr[@]}。"
+        sms_content+="${remotehost_name}负载报警:${load_aver_arr[@]}。"
     fi
 
     #发送短信
