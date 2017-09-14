@@ -38,8 +38,8 @@ do
         email_content+="<div>其中大文件："
         disk_v01_used=`sudo ssh -n $remotehost df -Thm | grep "/data/v01" | awk '{print $4}'`
         disk_v01_ex_pd=`sudo ssh -n $remotehost du -hm --max-depth=0 --exclude="/data/v01/ProvincesDatas" /data/v01/ | awk '{print $1}'`
-        disk_v01_pd=$[($disk_v01_used-$disk_v01_ex_pd)/1024]
-        email_content+="${disk_v01_pd}G=/data/v01/ProvincesDatas。"
+        disk_v01_pd=$[($disk_v01_used-$disk_v01_ex_pd)/1024/1024]
+        email_content+="${disk_v01_pd}T=/data/v01/ProvincesDatas。"
         for large_file in $large_files; do
             large_file_size=`sudo ssh -n $remotehost du -h --exclude="/data/v01/ProvincesDatas/*" --max-depth=0 $large_file | awk '{print $1"="$2}'`
             email_content+="$large_file_size。"
