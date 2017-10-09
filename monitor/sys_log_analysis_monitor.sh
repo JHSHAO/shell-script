@@ -60,6 +60,10 @@ do
         email_content+="<div>${remotehost_name}:文件系统/data/v02可用${disk_v02[0]},使用百分比${disk_v02_use}%。</div>"
         large_files=`sudo ssh -n $remotehost du --exclude="/data/v02/ProvincesDatas/*" --max-depth=3 /data/v02/ | sort -n | tail -n 8 | awk '{print $2}'`
         email_content+="<div>其中大文件："
+        disk_v02_used=`sudo ssh -n $remotehost df -Thm | grep "/data/v02" | awk '{print $4}'`
+        disk_v02_ex_pd=`sudo ssh -n $remotehost du -hm --max-depth=0 --exclude="/data/v02/ProvincesDatas" /data/v02/ | awk '{print $1}'`
+        disk_v02_pd=$[($disk_v02_used-$disk_v02_ex_pd)/1024/1024]
+        email_content+="${disk_v02_pd}T=/data/v02/ProvincesDatas。"
         for large_file in $large_files; do
             large_file_size=`sudo ssh -n $remotehost du -h --exclude="/data/v02/ProvincesDatas/*" --max-depth=0 $large_file | awk '{print $1"="$2}'`
             email_content+="$large_file_size。"
@@ -113,8 +117,8 @@ do
     fi
 
     #发送短信
-    #recivers="13120228321,17600908312,13001927192,17600196269,15510798997"
-    recivers="17600908312"
+    recivers="13120228321,17600908312,13001927192,17600196269,15510798997"
+    #recivers="17600908312"
     if [ ! -z "$sms_content" ]; then
        $send_sms_command $recivers $sms_content 250
        send_date_name=`date +"%Y_%m_%d"`
@@ -123,8 +127,8 @@ do
     fi
 done < $hostsfile
 #发送邮件
-#to_address="wutf5@chinaunicom.cn,microcosm8023@163.com,wangc238@chinaunicom.cn,apache_jianhua@163.com,1160880871@qq.com"
-to_address="1160880871@qq.com"
+to_address="wutf5@chinaunicom.cn,microcosm8023@163.com,wangc238@chinaunicom.cn,apache_jianhua@163.com,1160880871@qq.com"
+#to_address="1160880871@qq.com"
 cc_address="null"
 subject="主机系统监控报警"
 user_name="hqs-cbss-babel@chinaunicom.cn"
